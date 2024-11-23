@@ -68,12 +68,14 @@ static qboolean	winsockInitialized = qfalse;
 #	include <netdb.h>
 #	include <netinet/in.h>
 #	include <arpa/inet.h>
+#ifndef __vita__
 #	include <net/if.h>
 #	include <sys/ioctl.h>
+#endif
 #	include <sys/types.h>
 #	include <sys/time.h>
 #	include <unistd.h>
-#	if !defined(__sun) && !defined(__sgi)
+#	if !defined(__sun) && !defined(__sgi) && !defined(__vita__)
 #		include <ifaddrs.h>
 #	endif
 
@@ -89,6 +91,10 @@ typedef int SOCKET;
 typedef int	ioctlarg_t;
 #	define socketError			errno
 
+#endif
+
+#ifdef __vita__
+#include <vitasdk.h>
 #endif
 
 static qboolean usingSocks = qfalse;
@@ -114,15 +120,16 @@ static cvar_t	*net_dropsim;
 static struct sockaddr	socksRelayAddr;
 
 static SOCKET	ip_socket = INVALID_SOCKET;
-static SOCKET	ip6_socket = INVALID_SOCKET;
 static SOCKET	socks_socket = INVALID_SOCKET;
+#ifndef __vita__
+static SOCKET	ip6_socket = INVALID_SOCKET;
 static SOCKET	multicast6_socket = INVALID_SOCKET;
 
 // Keep track of currently joined multicast group.
 static struct ipv6_mreq curgroup;
 // And the currently bound address.
 static struct sockaddr_in6 boundto;
-
+#endif
 #ifndef IF_NAMESIZE
   #define IF_NAMESIZE 16
 #endif
@@ -220,6 +227,7 @@ static void NetadrToSockadr( netadr_t *a, struct sockaddr *s ) {
 		((struct sockaddr_in *)s)->sin_addr.s_addr = *(int *)&a->ip;
 		((struct sockaddr_in *)s)->sin_port = a->port;
 	}
+#ifndef __vita__
 	else if( a->type == NA_IP6 ) {
 		((struct sockaddr_in6 *)s)->sin6_family = AF_INET6;
 		((struct sockaddr_in6 *)s)->sin6_addr = * ((struct in6_addr *) &a->ip6);
@@ -232,6 +240,7 @@ static void NetadrToSockadr( netadr_t *a, struct sockaddr *s ) {
 		((struct sockaddr_in6 *)s)->sin6_addr = curgroup.ipv6mr_multiaddr;
 		((struct sockaddr_in6 *)s)->sin6_port = a->port;
 	}
+#endif
 }
 
 
@@ -340,6 +349,11 @@ Sys_SockaddrToString
 */
 static void Sys_SockaddrToString(char *dest, int destlen, struct sockaddr *input)
 {
+#ifdef __vita__
+	int haddr = sceNetNtohl(((struct sockaddr_in *)input)->sin_addr.s_addr);
+
+	sprintf(dest, "%d.%d.%d.%d:%d", (haddr >> 24) & 0xff, (haddr >> 16) & 0xff, (haddr >> 8) & 0xff, haddr & 0xff, sceNetNtohs(((struct sockaddr_in *)input)->sin_port));
+#else
 	socklen_t inputlen;
 
 	if (input->sa_family == AF_INET6)
@@ -349,6 +363,7 @@ static void Sys_SockaddrToString(char *dest, int destlen, struct sockaddr *input
 
 	if(getnameinfo(input, inputlen, dest, destlen, NULL, 0, NI_NUMERICHOST) && destlen > 0)
 		*dest = '\0';
+#endif
 }
 
 /*
@@ -570,7 +585,7 @@ qboolean NET_GetPacket(netadr_t *net_from, msg_t *net_message, fd_set *fdr)
 			return qtrue;
 		}
 	}
-	
+#ifndef __vita__
 	if(ip6_socket != INVALID_SOCKET && FD_ISSET(ip6_socket, fdr))
 	{
 		fromlen = sizeof(from);
@@ -626,7 +641,7 @@ qboolean NET_GetPacket(netadr_t *net_from, msg_t *net_message, fd_set *fdr)
 			return qtrue;
 		}
 	}
-	
+#endif
 	
 	return qfalse;
 }
@@ -651,14 +666,17 @@ void Sys_SendPacket( int length, const void *data, netadr_t to ) {
 	}
 
 	if( (ip_socket == INVALID_SOCKET && to.type == NA_IP) ||
-		(ip_socket == INVALID_SOCKET && to.type == NA_BROADCAST) ||
-		(ip6_socket == INVALID_SOCKET && to.type == NA_IP6) ||
-		(ip6_socket == INVALID_SOCKET && to.type == NA_MULTICAST6) )
+		(ip_socket == INVALID_SOCKET && to.type == NA_BROADCAST)
+#ifndef __vita__
+		 || (ip6_socket == INVALID_SOCKET && to.type == NA_IP6) ||
+		(ip6_socket == INVALID_SOCKET && to.type == NA_MULTICAST6)
+#endif
+		)
 		return;
-
+#ifndef __vita__
 	if(to.type == NA_MULTICAST6 && (net_enabled->integer & NET_DISABLEMCAST))
 		return;
-
+#endif
 	memset(&addr, 0, sizeof(addr));
 	NetadrToSockadr( &to, (struct sockaddr *) &addr );
 
@@ -675,8 +693,10 @@ void Sys_SendPacket( int length, const void *data, netadr_t to ) {
 	else {
 		if(addr.ss_family == AF_INET)
 			ret = sendto( ip_socket, data, length, 0, (struct sockaddr *) &addr, sizeof(struct sockaddr_in) );
+#ifndef __vita__
 		else if(addr.ss_family == AF_INET6)
 			ret = sendto( ip6_socket, data, length, 0, (struct sockaddr *) &addr, sizeof(struct sockaddr_in6) );
+#endif
 	}
 	if( ret == SOCKET_ERROR ) {
 		int err = socketError;
@@ -831,12 +851,16 @@ SOCKET NET_IPSocket( char *net_interface, int port, int *err ) {
 		return newsocket;
 	}
 	// make it non-blocking
+#ifdef __vita__
+	setsockopt(newsocket, SOL_SOCKET, SO_NONBLOCK, (char *)&_true, sizeof(_true));
+#else
 	if( ioctlsocket( newsocket, FIONBIO, &_true ) == SOCKET_ERROR ) {
 		Com_Printf( "WARNING: NET_IPSocket: ioctl FIONBIO: %s\n", NET_ErrorString() );
 		*err = socketError;
 		closesocket(newsocket);
 		return INVALID_SOCKET;
 	}
+#endif
 
 	// make it broadcast capable
 	if( setsockopt( newsocket, SOL_SOCKET, SO_BROADCAST, (char *) &i, sizeof(i) ) == SOCKET_ERROR ) {
@@ -872,7 +896,7 @@ SOCKET NET_IPSocket( char *net_interface, int port, int *err ) {
 
 	return newsocket;
 }
-
+#ifndef __vita__
 /*
 ====================
 NET_IP6Socket
@@ -1058,7 +1082,7 @@ void NET_LeaveMulticast6()
 		multicast6_socket = INVALID_SOCKET;
 	}
 }
-
+#endif
 /*
 ====================
 NET_OpenSocks
@@ -1322,16 +1346,19 @@ static void NET_GetLocalAddress( void ) {
 		memset(&mask6, 0, sizeof(mask6));
 		mask4.sin_family = AF_INET;
 		memset(&mask4.sin_addr.s_addr, 0xFF, sizeof(mask4.sin_addr.s_addr));
+#ifndef __vita__
 		mask6.sin6_family = AF_INET6;
 		memset(&mask6.sin6_addr, 0xFF, sizeof(mask6.sin6_addr));
-
+#endif
 		// add all IPs from returned list.
 		for(search = res; search; search = search->ai_next)
 		{
 			if(search->ai_family == AF_INET)
 				NET_AddLocalAddress("", search->ai_addr, (struct sockaddr *) &mask4);
+#ifndef __vita__
 			else if(search->ai_family == AF_INET6)
 				NET_AddLocalAddress("", search->ai_addr, (struct sockaddr *) &mask6);
+#endif
 		}
 	
 		Sys_ShowIP();
@@ -1364,6 +1391,7 @@ void NET_OpenIP( void ) {
 
 	if(net_enabled->integer & NET_ENABLEV6)
 	{
+#ifndef __vita__
 		for( i = 0 ; i < 10 ; i++ )
 		{
 			ip6_socket = NET_IP6Socket(net_ip6->string, port6 + i, &boundto, &err);
@@ -1379,6 +1407,7 @@ void NET_OpenIP( void ) {
 			}
 		}
 		if(ip6_socket == INVALID_SOCKET)
+#endif
 			Com_Printf( "WARNING: Couldn't bind to a v6 ip address.\n");
 	}
 
@@ -1533,7 +1562,7 @@ void NET_Config( qboolean enableNetworking ) {
 			closesocket( ip_socket );
 			ip_socket = INVALID_SOCKET;
 		}
-
+#ifndef __vita__
 		if(multicast6_socket != INVALID_SOCKET)
 		{
 			if(multicast6_socket != ip6_socket)
@@ -1546,7 +1575,7 @@ void NET_Config( qboolean enableNetworking ) {
 			closesocket( ip6_socket );
 			ip6_socket = INVALID_SOCKET;
 		}
-
+#endif
 		if ( socks_socket != INVALID_SOCKET ) {
 			closesocket( socks_socket );
 			socks_socket = INVALID_SOCKET;
@@ -1559,7 +1588,9 @@ void NET_Config( qboolean enableNetworking ) {
 		if (net_enabled->integer)
 		{
 			NET_OpenIP();
+#ifndef __vita__
 			NET_SetMulticast6();
+#endif
 		}
 	}
 }
@@ -1570,7 +1601,35 @@ void NET_Config( qboolean enableNetworking ) {
 NET_Init
 ====================
 */
+#ifdef __vita__
+static void *net_memory = NULL;
+#define NET_INIT_SIZE 141 * 1024
+#endif
+
 void NET_Init( void ) {
+#ifdef __vita__
+	sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
+	sceSysmoduleLoadModule(SCE_SYSMODULE_HTTP);
+	SceNetInitParam initparam;
+	int ret = sceNetShowNetstat();
+	if (ret == SCE_NET_ERROR_ENOTINIT) {
+		net_memory = malloc(NET_INIT_SIZE);
+
+		initparam.memory = net_memory;
+		initparam.size = NET_INIT_SIZE;
+		initparam.flags = 0;
+
+		ret = sceNetInit(&initparam);
+		
+	} 
+	ret = sceNetCtlInit();
+	if (ret < 0){
+		sceNetTerm();
+		free(net_memory);
+		net_memory = NULL;
+	}
+#endif	
+	
 #ifdef _WIN32
 	int		r;
 
@@ -1605,6 +1664,15 @@ void NET_Shutdown( void ) {
 #ifdef _WIN32
 	WSACleanup();
 	winsockInitialized = qfalse;
+#endif
+
+#ifdef __vita__
+	sceNetCtlTerm();
+	sceNetTerm();
+	if (net_memory) free(net_memory);
+	net_memory = NULL;
+	sceSysmoduleUnloadModule(SCE_SYSMODULE_HTTP);
+	sceSysmoduleUnloadModule(SCE_SYSMODULE_NET);
 #endif
 }
 
@@ -1670,6 +1738,7 @@ void NET_Sleep(int msec)
 
 		highestfd = ip_socket;
 	}
+#ifndef __vita__
 	if(ip6_socket != INVALID_SOCKET)
 	{
 		FD_SET(ip6_socket, &fdr);
@@ -1677,7 +1746,7 @@ void NET_Sleep(int msec)
 		if(highestfd == INVALID_SOCKET || ip6_socket > highestfd)
 			highestfd = ip6_socket;
 	}
-
+#endif
 #ifdef _WIN32
 	if(highestfd == INVALID_SOCKET)
 	{

@@ -176,6 +176,10 @@
 	// Raw sockets are undefined on Nitro
 	#define SB_NO_ICMP_SUPPORT
 
+// Sony PSVita
+#elif defined(__vita__)
+	#include <vitasdk.h>
+	#include <netinet/in.h>
 // Sony PSP
 #elif defined(_PSP)
 	#include <kernel.h>
@@ -259,11 +263,11 @@
 
 #include <assert.h>
 
-#if defined(GS_NO_FILE) || defined(_PS2) || defined(_PS3) || defined(_NITRO) || defined(_PSP) || defined(_XBOX)
+#if defined(GS_NO_FILE) || defined(_PS2) || defined(_PS3) || defined(_NITRO) || defined(__vita__) || defined(_PSP) || defined(_XBOX)
 	#define NOFILE
 #endif
 
-#if defined(_PSP) || defined(_NITRO)
+#if defined(_PSP) || defined(_NITRO) || defined(__vita__)
 	#define GS_WIRELESS_DEVICE
 #endif
 
@@ -315,6 +319,9 @@ typedef int               gsi_bool;
 	typedef s64                   gsi_i64;
 	typedef u64                   gsi_u64;
 #elif defined (_PSP)
+	typedef long long             gsi_i64;
+	typedef unsigned long long    gsi_u64;
+#elif defined (__vita__)
 	typedef long long             gsi_i64;
 	typedef unsigned long long    gsi_u64;
 #elif defined (_PS3)
@@ -456,7 +463,7 @@ static char _mempool[MEMPOOL_SIZE]	POST_ALIGN(16);
 #if defined _WIN32
 	#define PRE_ALIGN(x)	__declspec(align(x))	// ignore Win32 directive
 	#define POST_ALIGN(x)	// ignore
-#elif defined  (_PS2) || defined (_PSP) || defined (_PS3) 
+#elif defined  (_PS2) || defined (_PSP) || defined (_PS3) || defined(__vita__)
 	#define PRE_ALIGN(x)	// ignored this on psp/ps2
 	#define POST_ALIGN(x)	__attribute__((aligned (x)))		// 
 #elif defined (_REVOLUTION)

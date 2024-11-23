@@ -361,13 +361,24 @@ void RB_SurfaceBeam( void )
 	GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
 
 	qglColor3f( 1, 0, 0 );
-
+#ifndef __vita__
 	qglBegin( GL_TRIANGLE_STRIP );
 	for ( i = 0; i <= NUM_BEAM_SEGS; i++ ) {
 		qglVertex3fv( start_points[ i % NUM_BEAM_SEGS] );
 		qglVertex3fv( end_points[ i % NUM_BEAM_SEGS] );
 	}
 	qglEnd();
+#else
+	float *pPos = gVertexBuffer;
+	for ( i = 0; i <= NUM_BEAM_SEGS; i++ ) {
+		sceClibMemcpy(gVertexBuffer, start_points[ i % NUM_BEAM_SEGS], sizeof(vec3_t));
+		gVertexBuffer+=3;
+		sceClibMemcpy(gVertexBuffer, end_points[ i % NUM_BEAM_SEGS], sizeof(vec3_t));
+		gVertexBuffer+=3;
+	}
+	vglVertexPointerMapped(pPos);
+	vglDrawObjects(GL_TRIANGLE_STRIP, (NUM_BEAM_SEGS + 1) * 2, GL_TRUE);
+#endif
 }
 
 /*
@@ -692,6 +703,7 @@ Draws x/y/z lines from the origin for orientation debugging
 void RB_SurfaceAxis( void ) {
 	GL_Bind( tr.whiteImage );
 	qglLineWidth( 3 );
+#ifndef __vita__
 	qglBegin( GL_LINES );
 	qglColor3f( 1,0,0 );
 	qglVertex3f( 0,0,0 );
@@ -703,6 +715,29 @@ void RB_SurfaceAxis( void ) {
 	qglVertex3f( 0,0,0 );
 	qglVertex3f( 0,0,16 );
 	qglEnd();
+#else
+	float clrs[] = {
+		1, 0, 0, 0,
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 1, 0
+	};
+	float verts[] = {
+		0, 0, 0,
+		16, 0, 0,
+		0, 0, 0,
+		0, 16, 0,
+		0, 0, 0,
+		0, 0, 16
+	};
+	glEnableClientState(GL_COLOR_ARRAY);
+	vglVertexPointer(3, GL_FLOAT, 0, 6, verts);
+	vglColorPointer(4, GL_FLOAT, 0, 6, clrs);
+	vglDrawObjects(GL_LINES, 6, GL_TRUE);
+	glDisableClientState(GL_COLOR_ARRAY);
+#endif
 	qglLineWidth( 1 );
 }
 

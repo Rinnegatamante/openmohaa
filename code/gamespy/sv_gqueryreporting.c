@@ -27,6 +27,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "common/gsPlatformUtil.h"
 #include "gutil.h"
 
+#ifdef __vita__
+int closesocket(SOCKET sock) { return close(sock); }
+#endif
+
 static char *queries[] = {"basic", "info", "rules", "players", "status", "packets", "echo", "secure"};
 
 static qr_implementation_t  static_rec;

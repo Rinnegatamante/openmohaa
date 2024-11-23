@@ -1,0 +1,76 @@
+TARGET		:= cgame.arm
+
+SOURCES  := code/cgame
+
+INCLUDES := $(VITASDK)/arm-vita-eabi/include/SDL2 code/qcommon code/script code/gamespy/common \
+	code/jpeg-8c code/renderercommon code/sdl code/gamespy/gcdkey code/vita
+
+LIBS = -lSDL2 -lOpenAL -lpthread -lvitaGL -lvitashark -lSceShaccCgExt \
+	-ltaihen_stub -lSceIme_stub -lmad -lSceAudioIn_stub -lSceKernelDmacMgr_stub \
+	-lSceAppMgr_stub -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 \
+	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub \
+	-lSceNet_stub -lSceHid_stub \
+	-Wl,--whole-archive -lSceNetCtl_stub -Wl,--no-whole-archive \
+	-lpng -lz -lSceDisplay_stub -lSceGxm_stub \
+	-Wl,--whole-archive -lSceSysmodule_stub -Wl,--no-whole-archive \
+	-lSceCtrl_stub -lSceTouch_stub -lSceMotion_stub -lm \
+	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub -lcurl \
+	-lssl -lcrypto -lSceSsl_stub -lmathneon -lSceShaccCg_stub
+
+CPPFILES   := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.cpp)) $(foreach dir,$(CPPSOURCES), $(wildcard $(dir)/*.cpp))
+CFILES     := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.c)) $(foreach dir,$(CSOURCES), $(wildcard $(dir)/*.c))
+
+SHARED_CPPFILES += code/qcommon/class.cpp \
+	code/qcommon/con_set.cpp \
+	code/qcommon/con_timer.cpp \
+	code/qcommon/lightclass.cpp \
+	code/qcommon/listener.cpp \
+	code/qcommon/lz77.cpp \
+	code/qcommon/mem_blockalloc.cpp \
+	code/qcommon/mem_tempalloc.cpp \
+	code/qcommon/script.cpp \
+	code/qcommon/str.cpp \
+	code/script/scriptexception.cpp \
+	code/script/scriptvariable.cpp
+	
+SHARED_CFILES += code/qcommon/q_math.c \
+	code/qcommon/q_shared.c
+
+CPPFILES += code/fgame/bg_misc.cpp \
+	code/fgame/bg_pmove.cpp \
+	code/fgame/bg_slidemove.cpp \
+	code/fgame/bg_voteoptions.cpp
+	
+CFILES += code/vita/psp2_dll_hacks.c
+
+OBJS := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o) $(SHARED_CPPFILES:.cpp=.o) $(SHARED_CFILES:.c=.o)
+
+export INCLUDE	:= $(foreach dir,$(INCLUDES),-I$(dir))
+
+PREFIX  = arm-vita-eabi
+CC      = $(PREFIX)-gcc
+CXX      = $(PREFIX)-g++
+CFLAGS  = $(INCLUDE) -D__FLOAT_WORD_ORDER=1 -D__GNU__ -DRELEASE \
+        -DUSE_ICON -DARCH_STRING=\"arm\" -DBOTLIB -DUSE_CODEC_MP3 -DUSE_OPENAL \
+        -DDEFAULT_BASEDIR=\"ux0:/data/OpenMoHAA\" -DNO_MODERN_DMA=0 \
+        -DHAVE_VM_COMPILED=true -DCGAME_DLL -nostartfiles -include "../vita/psp2_dll_defs.h" \
+        -mfpu=neon -mcpu=cortex-a9 -fsigned-char \
+        -Wl,-q -O3 -g -ffast-math -fno-short-enums
+CXXFLAGS  = $(CFLAGS) -fexceptions -std=gnu++11
+ASFLAGS = $(CFLAGS)
+
+all: $(TARGET).suprx
+
+$(TARGET).suprx: $(TARGET).velf
+	vita-make-fself -s $< $@
+	
+%.velf: %.elf
+	cp $< $<.unstripped.elf
+	$(PREFIX)-strip -g $<
+	vita-elf-create $< $@
+
+$(TARGET).elf: $(OBJS)
+	$(CXX) $(CXXFLAGS) $^ $(LIBS) -o $@
+
+clean:
+	@rm -rf $(TARGET).velf $(TARGET).elf $(OBJS) $(TARGET).elf.unstripped.elf $(TARGET).suprx

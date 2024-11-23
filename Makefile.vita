@@ -1,0 +1,157 @@
+TARGET		:= OpenMOHAA
+TITLE		:= OPENMOHAA
+
+SOURCES  := code/skeletor code/tiki code/gamespy/common code/gamespy/gcdkey code/gamespy/natneg \
+	code/gamespy/qr2 code/server code/parser/parsetree code/renderer \
+	code/gamespy/ghttp code/gamespy/gt2
+
+CPPSOURCES := code/uilib code/client
+CSOURCES := code/fgame code/renderercommon code/jpeg-8c
+
+INCLUDES := $(VITASDK)/arm-vita-eabi/include/SDL2 code/qcommon code/script code/gamespy/common \
+	code/jpeg-8c code/renderercommon code/sdl code/gamespy/gcdkey
+
+LIBS = -lSDL2 -lOpenAL -lpthread -lvitaGL -lvitashark -lSceShaccCgExt \
+	-ltaihen_stub -lSceIme_stub -lSceAudioIn_stub -lSceKernelDmacMgr_stub \
+	-lSceAppMgr_stub -lvorbisfile -lvorbis -logg  -lspeexdsp -lmpg123 \
+	-lc -lSceCommonDialog_stub -lSceAudio_stub -lSceLibKernel_stub \
+	-lSceNet_stub -lSceHid_stub \
+	-Wl,--whole-archive -lSceNetCtl_stub -Wl,--no-whole-archive \
+	-lpng -lz -lSceDisplay_stub -lSceGxm_stub \
+	-Wl,--whole-archive -lSceSysmodule_stub -Wl,--no-whole-archive \
+	-lSceCtrl_stub -lSceTouch_stub -lSceMotion_stub -lm \
+	-lSceAppUtil_stub -lScePgf_stub -ljpeg -lSceRtc_stub -lScePower_stub -lcurl \
+	-lssl -lcrypto -lSceSsl_stub -lmathneon -lSceShaccCg_stub
+
+CPPFILES   := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.cpp)) $(foreach dir,$(CPPSOURCES), $(wildcard $(dir)/*.cpp))
+CFILES     := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.c)) $(foreach dir,$(CSOURCES), $(wildcard $(dir)/*.c))
+
+SHARED_CPPFILES += code/qcommon/class.cpp \
+	code/qcommon/con_set.cpp \
+	code/qcommon/con_timer.cpp \
+	code/qcommon/lightclass.cpp \
+	code/qcommon/listener.cpp \
+	code/qcommon/lz77.cpp \
+	code/qcommon/mem_blockalloc.cpp \
+	code/qcommon/mem_tempalloc.cpp \
+	code/qcommon/script.cpp \
+	code/qcommon/str.cpp \
+	code/script/scriptexception.cpp \
+	code/script/scriptvariable.cpp \
+	code/qcommon/tiki_main.cpp \
+	code/qcommon/tiki_script.cpp
+	
+SHARED_CFILES += code/qcommon/q_math.c \
+	code/qcommon/q_shared.c
+
+CPPFILES += code/qcommon/cm_trace_lbd.cpp \
+	code/qcommon/bg_compat.cpp \
+	code/qcommon/cm_trace_obfuscation.cpp \
+	code/qcommon/files.cpp \
+	code/qcommon/huffman.cpp \
+	code/sys/win_bounds.cpp \
+	code/sys/win_localization.cpp \
+	code/qcommon/msg.cpp
+	
+CFILES += code/qcommon/alias.c \
+	code/qcommon/cm_fencemask.c \
+	code/qcommon/cm_load.c \
+	code/qcommon/cm_patch.c \
+	code/qcommon/cm_polylib.c \
+	code/qcommon/cm_terrain.c \
+	code/qcommon/cm_test.c \
+	code/qcommon/cm_trace.c \
+	code/qcommon/cmd.c \
+	code/qcommon/common.c \
+	code/qcommon/crc.c \
+	code/qcommon/cvar.c \
+	code/qcommon/ioapi.c \
+	code/qcommon/md4.c \
+	code/qcommon/md5.c \
+	code/qcommon/puff.c \
+	code/qcommon/memory.c \
+	code/qcommon/net_chan.c \
+	code/qcommon/net_ip.c \
+	code/qcommon/q_math.c \
+	code/qcommon/q_shared.c \
+	code/qcommon/unzip.c \
+	code/gamespy/sv_gamespy.c \
+	code/gamespy/sv_gqueryreporting.c \
+	code/gamespy/darray.c \
+	code/gamespy/gserver.c \
+    code/gamespy/gserverlist.c \
+	code/gamespy/hashtable.c \
+	code/gamespy/md5c.c \
+	code/gamespy/gutil.c \
+	code/sys/con_log.c \
+	code/sys/sys_autoupdater.c \
+	code/sys/sys_main.c \
+	code/sys/new/sys_main_new.c \
+	code/sys/new/sys_unix_new.c \
+	code/sys/con_tty.c \
+	code/sys/sys_unix.c \
+	code/sdl/sdl_gamma.c \
+	code/sdl/sdl_glimp.c \
+	code/sdl/sdl_input.c \
+	code/client/cl_curl.c \
+	code/client/libmumblelink.c \
+	code/client/qal.c \
+	code/client/snd_codec.c \
+	code/client/snd_codec_mp3.c \
+	code/client/snd_codec_ogg.c \
+	code/client/snd_codec_opus.c \
+	code/client/snd_codec_wav.c \
+	code/vita/dll_psp2.c \
+	code/libmad/bit.c \
+	code/libmad/decoder.c \
+	code/libmad/fixed.c \
+	code/libmad/frame.c \
+	code/libmad/huffman.c \
+	code/libmad/layer12.c \
+	code/libmad/layer3.c \
+	code/libmad/stream.c \
+	code/libmad/synth.c \
+	code/libmad/timer.c \
+	code/libmad/version.c
+
+OBJS := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o) $(SHARED_CPPFILES:.cpp=.o) $(SHARED_CFILES:.c=.o)
+
+export INCLUDE	:= $(foreach dir,$(INCLUDES),-I$(dir))
+
+PREFIX  = arm-vita-eabi
+CC      = $(PREFIX)-gcc
+CXX      = $(PREFIX)-g++
+CFLAGS  = $(INCLUDE) -D__FLOAT_WORD_ORDER=1 -D__GNU__ -DRELEASE -DAPP_MODULE \
+        -DUSE_ICON -DARCH_STRING=\"arm\" -DBOTLIB -DUSE_CODEC_MP3 -DUSE_OPENAL \
+        -DDEFAULT_BASEDIR=\"ux0:/data/OpenMoHAA\" -DNO_MODERN_DMA=0 \
+        -DHAVE_VM_COMPILED=true \
+        -mfpu=neon -mcpu=cortex-a9 -fsigned-char \
+        -Wl,-q -O3 -g -ffast-math -fno-short-enums
+CXXFLAGS  = $(CFLAGS) -fexceptions -std=gnu++11
+ASFLAGS = $(CFLAGS)
+
+all: $(TARGET).vpk
+
+exec-only: eboot.bin
+
+$(TARGET).vpk: $(TARGET).velf
+	vita-make-fself -s $< eboot.bin
+	vita-mksfoex -s TITLE_ID=$(TITLE) -d ATTRIBUTE2=12 "$(TARGET)" param.sfo
+	vita-pack-vpk -s param.sfo -b eboot.bin $(TARGET).vpk
+
+eboot.bin: $(TARGET).velf
+	vita-make-fself -s $< eboot.bin
+	
+%.velf: %.elf
+	cp $< $<.unstripped.elf
+	$(PREFIX)-strip -g $<
+	vita-elf-create $< $@
+
+$(TARGET).elf: $(OBJS)
+	$(CXX) $(CXXFLAGS) $^ $(LIBS) -o $@
+
+clean:
+	#@make -C code/cgame clean
+	#@make -C code/ui clean
+	#@make -C code/game clean
+	@rm -rf $(TARGET).velf $(TARGET).elf $(OBJS) $(TARGET).elf.unstripped.elf $(TARGET).vpk ./eboot.bin ./param.sfo

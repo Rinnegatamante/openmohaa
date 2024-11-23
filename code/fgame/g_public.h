@@ -178,7 +178,7 @@ typedef struct gentity_s {
     float    mat[3][3];
 
     // Leave reminder to the game dll
-#if defined(GAME_DLL)
+#if defined(GAME_DLL) && !defined(VITA_HACK)
     class Entity *entity;
     float         freetime;
     float         spawntime;

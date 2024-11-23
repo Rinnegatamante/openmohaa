@@ -30,7 +30,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <unistd.h>
 #include <signal.h>
+#ifndef __vita__
 #include <termios.h>
+#endif
 #include <fcntl.h>
 #include <sys/time.h>
 
@@ -54,9 +56,9 @@ static int ttycon_show_overdue = 0;
 // some key codes that the terminal may be using, initialised on start up
 static int TTY_erase;
 static int TTY_eof;
-
+#ifndef __vita__
 static struct termios TTY_tc;
-
+#endif
 static field_t TTY_con;
 
 // This is somewhat of aduplicate of the graphical console history
@@ -170,6 +172,7 @@ Never exit without calling this, or your terminal will be left in a pretty bad s
 */
 void CON_Shutdown( void )
 {
+#ifndef __vita__
 	if (ttycon_on)
 	{
 		CON_Hide();
@@ -178,6 +181,7 @@ void CON_Shutdown( void )
 
 	// Restore blocking to stdin reads
 	fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) & ~O_NONBLOCK);
+#endif
 }
 
 /*
@@ -275,6 +279,7 @@ Initialize the console input (tty mode if possible)
 */
 void CON_Init( void )
 {
+#ifndef __vita__
 	struct termios tc;
 
 	// If the process is backgrounded (running non interactively)
@@ -323,6 +328,7 @@ void CON_Init( void )
 	ttycon_on = qtrue;
 	ttycon_hide = 1; // Mark as hidden, so prompt is shown in CON_Show
 	CON_Show();
+#endif
 }
 
 /*
@@ -332,6 +338,7 @@ CON_Input
 */
 char *CON_Input( void )
 {
+#ifndef __vita__
 	// we use this when sending back commands
 	static char text[MAX_EDIT_LINE];
 	int avail;
@@ -493,6 +500,7 @@ char *CON_Input( void )
 
 		return text;
 	}
+#endif
 	return NULL;
 }
 

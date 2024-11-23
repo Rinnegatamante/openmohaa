@@ -22,6 +22,7 @@ Updated 6-17-99 (DDW)
 *******/
 #if defined(applec) || defined(THINK_C) || defined(__MWERKS__) && !defined(__KATANA__)
 	#include "::nonport.h"
+	#include "nonport.h"
 #else
 	#include "../nonport.h"
 #endif

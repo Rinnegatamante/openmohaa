@@ -59,7 +59,7 @@ extern "C" {
 	} GSIThreadID;
 	typedef void *(*GSThreadFunc)(void *arg);
 
-#elif defined(_PSP)
+#elif defined(_PSP) || defined(__vita__)
 	// Todo: Test PSP thread code, then remove this define
 	#define GSI_NO_THREADS
 	typedef int GSIThreadID;

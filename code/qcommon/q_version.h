@@ -24,7 +24,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #pragma once
 
+#ifdef __vita__
+#define GIT_BRANCH_NAME "main"
+#define GIT_REVISION_HASH "deadbeef"
+#define GIT_REVISION_HASH_ABBREVIATED "deadbeef"
+#define GIT_REVISION_DATE_TIME "01:01:01"
+#define GIT_REVISION_DATE "01/01/2024"
+#define GIT_REVISION_BUILD_NUMBER 1
+#define PRODUCT_VERSION_STAGE "1.0"
+#else
 #include <q_version.generated.h>
+#endif
 
 //
 // Version

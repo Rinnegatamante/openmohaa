@@ -35,6 +35,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../sys/sys_local.h"
 #include "sdl_icon.h"
 
+#ifdef __vita__
+#include <vitasdk.h>
+uint16_t *indices;
+float *gVertexBuffer;
+float *gTexCoordBuffer;
+float *gVertexBufferPtr;
+float *gTexCoordBufferPtr;
+#endif
+
 typedef enum
 {
 	RSERR_OK,
@@ -259,12 +268,21 @@ GLimp_GetProcAddresses
 Get addresses for OpenGL functions.
 ===============
 */
+#ifdef __vita__
+void dummy() {}
+#endif
 static qboolean GLimp_GetProcAddresses( qboolean fixedFunction ) {
 	qboolean success = qtrue;
 	const char *version;
 
 #ifdef __SDL_NOGETPROCADDR__
 #define GLE( ret, name, ... ) qgl##name = gl#name;
+#elif defined(__vita__)
+#define GLE( ret, name, ... ) qgl##name = (name##proc *) SDL_GL_GetProcAddress("gl" #name); \
+	if ( qgl##name == NULL ) { \
+		ri.Printf( PRINT_ALL, "ERROR: Missing OpenGL function %s, dummying it\n", "gl" #name ); \
+		qgl##name = dummy; \
+	}
 #else
 #define GLE( ret, name, ... ) qgl##name = (name##proc *) SDL_GL_GetProcAddress("gl" #name); \
 	if ( qgl##name == NULL ) { \
@@ -298,6 +316,12 @@ static qboolean GLimp_GetProcAddresses( qboolean fixedFunction ) {
 		sscanf( version, "%d.%d", &qglMajorVersion, &qglMinorVersion );
 	}
 
+#ifdef __vita__
+	QGL_1_1_PROCS;
+	QGL_1_1_FIXED_FUNCTION_PROCS;
+	QGL_DESKTOP_1_1_PROCS;
+	QGL_DESKTOP_1_1_FIXED_FUNCTION_PROCS;
+#else
 	if ( fixedFunction ) {
 		if ( QGL_VERSION_ATLEAST( 1, 1 ) ) {
 			QGL_1_1_PROCS;
@@ -342,6 +366,7 @@ static qboolean GLimp_GetProcAddresses( qboolean fixedFunction ) {
 			Com_Error( ERR_FATAL, "Unsupported OpenGL Version (%s), OpenGL 2.0 is required", version );
 		}
 	}
+#endif
 
 	if ( QGL_VERSION_ATLEAST( 3, 0 ) || QGLES_VERSION_ATLEAST( 3, 0 ) ) {
 		QGL_3_0_PROCS;
@@ -834,6 +859,27 @@ GLimp_StartDriverAndSetMode
 */
 static qboolean GLimp_StartDriverAndSetMode(int mode, qboolean fullscreen, qboolean noborder, qboolean gl3Core)
 {
+#ifdef __vita__
+	static uint8_t inited = 0;
+
+	if (!inited) {
+		vglInitExtended(0x100000, 960, 544, 0x1800000, SCE_GXM_MULTISAMPLE_4X);
+		
+		indices = (uint16_t*)malloc(sizeof(uint16_t) * 4096);
+		for (uint16_t i = 0; i < 4096; i++){
+			indices[i] = i;
+		}
+		vglIndexPointerMapped(indices);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		gVertexBufferPtr = (float *)malloc(0x100000);
+		gTexCoordBufferPtr = (float *)malloc(0x100000);
+		gVertexBuffer = gVertexBufferPtr;
+		gTexCoordBuffer = gTexCoordBufferPtr;
+	
+		inited = 1;
+	}
+#endif
+
 	rserr_t err;
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
@@ -1177,6 +1223,12 @@ Responsible for doing a swapbuffers
 */
 void GLimp_EndFrame( void )
 {
+#ifdef __vita__
+	vglIndexPointerMapped(indices);
+	gVertexBuffer = gVertexBufferPtr;
+	gTexCoordBuffer = gTexCoordBufferPtr;
+#endif
+
 	// don't flip if drawing to front buffer
 	if ( Q_stricmp( r_drawBuffer->string, "GL_FRONT" ) != 0 )
 	{

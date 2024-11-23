@@ -366,7 +366,33 @@ static void DrawSkySide( struct image_s *image, const int mins[2], const int max
 	int s, t;
 
 	GL_Bind( image );
-
+#ifdef __vita__
+	glDisableClientState(GL_COLOR_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	for ( t = mins[1]+HALF_SKY_SUBDIVISIONS; t < maxs[1]+HALF_SKY_SUBDIVISIONS; t++ )
+	{
+		float *texcoord = gTexCoordBuffer;
+		float *vertices = gVertexBuffer;
+		int numindices = 0;
+		for ( s = mins[0]+HALF_SKY_SUBDIVISIONS; s <= maxs[0]+HALF_SKY_SUBDIVISIONS; s++ )
+		{
+			sceClibMemcpy(gTexCoordBuffer, s_skyTexCoords[t][s], sizeof(vec2_t));
+			sceClibMemcpy(gVertexBuffer, s_skyPoints[t][s], sizeof(vec3_t));
+			gVertexBuffer += 3;
+			gTexCoordBuffer += 2;
+			sceClibMemcpy(gTexCoordBuffer, s_skyTexCoords[t+1][s], sizeof(vec2_t));
+			sceClibMemcpy(gVertexBuffer, s_skyPoints[t+1][s], sizeof(vec3_t));
+			gVertexBuffer += 3;
+			gTexCoordBuffer += 2;
+			numindices += 2;
+		}
+		vglVertexPointerMapped(vertices);
+		vglTexCoordPointerMapped(texcoord);
+		vglDrawObjects(GL_TRIANGLE_STRIP, numindices, GL_TRUE);
+	}
+	//glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+#else
 	for ( t = mins[1]+HALF_SKY_SUBDIVISIONS; t < maxs[1]+HALF_SKY_SUBDIVISIONS; t++ )
 	{
 		qglBegin( GL_TRIANGLE_STRIP );
@@ -382,6 +408,7 @@ static void DrawSkySide( struct image_s *image, const int mins[2], const int max
 
 		qglEnd();
 	}
+#endif
 }
 
 static void DrawSkyBox( shader_t *shader )

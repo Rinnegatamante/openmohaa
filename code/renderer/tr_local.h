@@ -29,6 +29,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/qgl.h"
 #include "qgl.h"
 
+#ifdef __vita__
+#include <vitasdk.h>
+extern float *gVertexBuffer;
+extern float *gTexCoordBuffer;
+extern uint16_t *indices;
+#endif
+
 #ifdef __cplusplus
 #define GLE(ret, name, ...) extern "C" name##proc * qgl##name;
 #else
@@ -48,8 +55,13 @@ QGL_3_0_PROCS;
 extern "C" {
 #endif
 
+#ifdef __vita__
+#define GL_INDEX_TYPE		GL_UNSIGNED_SHORT
+typedef uint16_t glIndex_t;
+#else
 #define GL_INDEX_TYPE		GL_UNSIGNED_INT
 typedef unsigned int glIndex_t;
+#endif
 
 // fast float to int conversion
 #if id386 && !( (defined __linux__ || defined __FreeBSD__ ) && (defined __i386__ ) ) // rb010123

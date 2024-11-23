@@ -33,7 +33,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 #include <dirent.h>
 #include <unistd.h>
+#ifndef __vita__
 #include <sys/mman.h>
+#endif
 #include <sys/time.h>
 #include <pwd.h>
 #include <libgen.h>
@@ -41,6 +43,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <fenv.h>
 #include <sys/wait.h>
 #include <time.h>
+
+#ifdef __vita__
+#include <vitasdk.h>
+#endif
 
 qboolean stdinIsATTY;
 
@@ -187,6 +193,17 @@ unsigned long sys_timeBase = 0;
 int curtime;
 int Sys_Milliseconds (void)
 {
+#ifdef __vita__
+	uint64_t time = sceKernelGetProcessTimeWide() / 1000;
+	
+    if (!sys_timeBase) {
+		sys_timeBase = time;
+    }
+
+    curtime = (int)(time - sys_timeBase);
+
+    return curtime;
+#else
 	struct timeval tp;
 
 	gettimeofday(&tp, NULL);
@@ -200,6 +217,7 @@ int Sys_Milliseconds (void)
 	curtime = (tp.tv_sec - sys_timeBase)*1000 + tp.tv_usec/1000;
 
 	return curtime;
+#endif
 }
 
 /*
@@ -209,6 +227,9 @@ Sys_RandomBytes
 */
 qboolean Sys_RandomBytes( byte *string, int len )
 {
+#ifdef __vita__
+	return qfalse;
+#else
 	FILE *fp;
 
 	fp = fopen( "/dev/urandom", "r" );
@@ -225,6 +246,7 @@ qboolean Sys_RandomBytes( byte *string, int len )
 
 	fclose( fp );
 	return qtrue;
+#endif
 }
 
 /*
@@ -232,14 +254,27 @@ qboolean Sys_RandomBytes( byte *string, int len )
 Sys_GetCurrentUser
 ==================
 */
+#ifdef __vita__
+char nick[SCE_SYSTEM_PARAM_USERNAME_MAXSIZE];
+#endif
 char *Sys_GetCurrentUser( void )
 {
+#ifdef __vita__
+	SceAppUtilInitParam init_param;
+	SceAppUtilBootParam boot_param;
+	memset(&init_param, 0, sizeof(SceAppUtilInitParam));
+	memset(&boot_param, 0, sizeof(SceAppUtilBootParam));
+	sceAppUtilInit(&init_param, &boot_param);
+	sceAppUtilSystemParamGetString(SCE_SYSTEM_PARAM_ID_USERNAME, nick, SCE_SYSTEM_PARAM_USERNAME_MAXSIZE);
+    return nick;
+#else
 	struct passwd *p;
 
 	if ( (p = getpwuid( getuid() )) == NULL ) {
 		return "player";
 	}
 	return p->pw_name;
+#endif
 }
 
 #define MEM_THRESHOLD 96*1024*1024
@@ -298,12 +333,21 @@ Sys_Mkdir
 */
 qboolean Sys_Mkdir( const char *path )
 {
+#ifdef __vita__
+    int result = sceIoMkdir(path, 0777);
+    if (result != 0 && result != 0x80010011
+            && result != 0x8001000D)
+        return errno == EEXIST;
+
+    return qtrue;
+#else
 	int result = mkdir( path, 0750 );
 
 	if( result != 0 )
 		return errno == EEXIST;
 
 	return qtrue;
+#endif
 }
 
 /*
@@ -313,6 +357,9 @@ Sys_Mkfifo
 */
 FILE *Sys_Mkfifo( const char *ospath )
 {
+#ifdef __vita__
+    return NULL;
+#else
 	FILE	*fifo;
 	int	result;
 	int	fn;
@@ -334,6 +381,7 @@ FILE *Sys_Mkfifo( const char *ospath )
 	}
 
 	return fifo;
+#endif
 }
 
 /*
@@ -343,6 +391,9 @@ Sys_Cwd
 */
 char *Sys_Cwd( void )
 {
+#ifdef __vita__
+	return DEFAULT_BASEDIR;
+#else
 	static char cwd[MAX_OSPATH];
 
 	char *result = getcwd( cwd, sizeof( cwd ) - 1 );
@@ -352,6 +403,7 @@ char *Sys_Cwd( void )
 	cwd[MAX_OSPATH-1] = 0;
 
 	return cwd;
+#endif
 }
 
 /*
@@ -606,9 +658,13 @@ void Sys_Sleep( int msec )
 		if( msec < 0 )
 			msec = 10;
 
+#ifdef __vita__
+		sceKernelDelayThread(msec * 1000);
+#else
 		req.tv_sec = msec/1000;
 		req.tv_nsec = (msec%1000)*1000000;
 		nanosleep(&req, NULL);
+#endif
 	}
 }
 
@@ -621,6 +677,9 @@ Display an error message
 */
 void Sys_ErrorDialog( const char *error )
 {
+#ifdef __vita__
+	CON_Print(error);
+#else
 	char buffer[ 1024 ];
 	unsigned int size;
 	int f = -1;
@@ -669,9 +728,10 @@ void Sys_ErrorDialog( const char *error )
 	}
 
 	close( f );
+#endif
 }
 
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(__vita__)
 static char execBuffer[ 1024 ];
 static char *execBufferPointer;
 static char *execArgv[ 16 ];
@@ -715,6 +775,7 @@ Sys_Exec
 */
 static int Sys_Exec( void )
 {
+#ifndef __vita__
 	pid_t pid = fork( );
 
 	if( pid < 0 )
@@ -739,6 +800,7 @@ static int Sys_Exec( void )
 
 		return -1;
 	}
+#endif
 }
 
 /*
@@ -919,8 +981,10 @@ void Sys_GLimpInit( void )
 
 void Sys_SetFloatEnv(void)
 {
+#ifndef __vita__
 	// rounding toward nearest
 	fesetround(FE_TONEAREST);
+#endif
 }
 
 /*

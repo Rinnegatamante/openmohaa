@@ -450,9 +450,10 @@ void SV_Startup( void ) {
 
 	SV_InitGamespy();
 	Cvar_Set( "sv_running", "1" );
-	
+#ifndef __vita__	
 	// Join the ipv6 multicast group now that a map is running so clients can scan for us on the local network.
 	NET_JoinMulticast6();
+#endif
 }
 
 /*

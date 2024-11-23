@@ -22,6 +22,8 @@
 	#include "ps3/gsUtilPs3.c"
 #elif defined(_PSP)
 	#include "psp/gsUtilPSP.c"
+#elif defined(__vita__)
+	#include "linux/gsUtilLinux.c"
 #elif defined(_REVOLUTION)
 	#include "revolution/gsUtilRevolution.c"
 #else
@@ -1886,7 +1888,7 @@ const char * GOAGetUniqueID_Internal(void);
 #endif
 
 
-#if (!defined(_PS2) && !defined(_PS3) && !defined(_XBOX) && !defined(_PSP)) || defined(UNIQUEID)
+#if (!defined(_PS2) && !defined(_PS3) && !defined(_XBOX) && !defined(_PSP) && !defined(__vita__)) || defined(UNIQUEID)
 GetUniqueIDFunction GOAGetUniqueID = GOAGetUniqueID_Internal;
 #endif
 

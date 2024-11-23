@@ -25,7 +25,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // Setting DEFAULT_BASEDIR to an empty string will make
 // Sys_DefaultInstallPath() return the current directory instead
 // This was the usual behavior in Quake III Arena.
+#ifndef __vita__
 #define DEFAULT_BASEDIR ""
+#endif
 
 void Sys_InitEx();
 

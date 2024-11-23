@@ -1,3 +1,10 @@
+*.o
+*.velf
+*.elf
+*.sfo
+*.vpk
+*.bin
+*.suprx
 build
 mohaa-re
 out

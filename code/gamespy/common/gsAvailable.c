@@ -6,6 +6,10 @@
 #define MAX_RETRIES       1
 #define TIMEOUT_TIME   2000
 
+#ifdef __vita__
+#define closesocket close
+#endif
+
 // this is the global var that the SDKs check
 // to see if they should communicate with the backend
 GSIACResult __GSIACResult	= GSIACWaiting;

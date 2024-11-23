@@ -383,7 +383,16 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 		assert(qfalse);
 	}
 #endif
+#ifdef __vita__
+	va_list list;
+	static char string[0x8000];
 
+	va_start(list, fmt);
+	vsprintf(string, fmt, list);
+	va_end(list);
+
+	printf("[ERROR] %x: %s\n", code, string);
+#endif
 	// Debug builds should stop on this
 	assert(code != ERR_FATAL);
 

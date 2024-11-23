@@ -30,6 +30,7 @@
 	#include "psp/gsSocketPSP.c"
 #elif defined(_REVOLUTION)
 	#include "revolution/gsSocketRevolution.c"
+#elif defined(__vita__)
 #else
 	#error "Missing or unsupported platform"
 #endif
@@ -113,6 +114,8 @@ int SetSockBlocking(SOCKET sock, int isblocking)
 		rcode = setsockopt(sock, SCE_NET_INET_SOL_SOCKET, SCE_NET_INET_SO_NBIO, &argp, sizeof(argp));
 	#elif defined(_PS3)
 		rcode = setsockopt(sock, SOL_SOCKET, SO_NBIO, &argp, sizeof(argp));
+	#elif defined(__vita__)
+		rcode = setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&argp, sizeof(argp));
 	#else
 		rcode = ioctlsocket(sock, FIONBIO, &argp);
 	#endif

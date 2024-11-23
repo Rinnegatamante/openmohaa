@@ -40,7 +40,7 @@ unsigned int gsiGetResolvedIP(GSIResolveHostnameHandle handle);
 	#define GSI_UNUSED(x) x
 #elif defined(_PS2) || defined(_NITRO) || defined(_PS3) || defined(_MACOSX)
 	#define GSI_UNUSED(x) {void* y=&x;y=NULL;}
-#elif defined(_PSP)
+#elif defined(_PSP) || defined(__vita__)
 #define GSI_UNUSED(x) (void)x;
 	
 #else

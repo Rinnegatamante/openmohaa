@@ -251,10 +251,11 @@ void Sys_InitPIDFile( const char *gamedir ) {
 		Com_sprintf( message, sizeof (message), "The last time %s ran, "
 			"it didn't exit properly. This may be due to inappropriate video "
 			"settings. Would you like to start with \"safe\" video settings?", modName );
-
+#ifndef __vita__
 		if( Sys_Dialog( DT_YES_NO, message, "Abnormal Exit" ) == DR_YES ) {
 			Cvar_Set( "com_abnormalExit", "1" );
 		}
+#endif
 #endif
 	}
 }
@@ -790,11 +791,13 @@ int main( int argc, char **argv )
 	if( SDL_VERSIONNUM( ver.major, ver.minor, ver.patch ) <
 			SDL_VERSIONNUM( MINSDL_MAJOR, MINSDL_MINOR, MINSDL_PATCH ) )
 	{
+#ifndef __vita__
 		Sys_Dialog( DT_ERROR, va( "SDL version " MINSDL_VERSION " or greater is required, "
 			"but only version %d.%d.%d was found. You may be able to obtain a more recent copy "
 			"from http://www.libsdl.org/.", ver.major, ver.minor, ver.patch ), "SDL Library Too Old" );
 
 		Sys_Exit( 1 );
+#endif
 	}
 #endif
 

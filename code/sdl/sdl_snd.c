@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdlib.h>
 #include <stdio.h>
 
+#if defined(NO_MODERN_DMA) && NO_MODERN_DMA
 #ifdef USE_LOCAL_HEADERS
 #	include "SDL.h"
 #else
@@ -437,4 +438,4 @@ void SNDDMA_MasterGain( float val )
 #endif
 }
 #endif
-
+#endif

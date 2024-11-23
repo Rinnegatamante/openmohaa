@@ -160,6 +160,9 @@ instead of using the single glDrawElements call that may be inefficient
 without compiled vertex arrays.
 ==================
 */
+#ifdef __vita__
+#define R_DrawElements(numIndexes, indexes) glDrawElements(GL_TRIANGLES, numIndexes, GL_INDEX_TYPE, indexes)
+#else
 static void R_DrawElements( int numIndexes, const glIndex_t *indexes ) {
 	int		primitives;
 
@@ -195,7 +198,7 @@ static void R_DrawElements( int numIndexes, const glIndex_t *indexes ) {
 
 	// anything else will cause no drawing
 }
-
+#endif
 
 /*
 =============================================================

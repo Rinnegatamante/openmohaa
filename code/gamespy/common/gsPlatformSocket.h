@@ -223,8 +223,50 @@ gsiSocketGethostbyname(n) SOC_GetHostByName(n)
 	struct hostent* gsSocketGetHostByName(const char* name); // gsSocketPSP.c
 	const char* gsSocketInetNtoa(struct in_addr in);
 
-
 #endif // _PSP
+
+#ifdef __vita__
+#define MAX_NAME 512
+struct hostent{
+  char  *h_name;         /* official (cannonical) name of host               */
+  char **h_aliases;      /* pointer to array of pointers of alias names      */
+  int    h_addrtype;     /* host address type: AF_INET                       */
+  int    h_length;       /* length of address: 4                             */
+  char **h_addr_list;    /* pointer to array of pointers with IPv4 addresses */
+};
+#define h_addr h_addr_list[0]
+
+#include <vitasdk.h>
+static struct hostent *gethostbyname(const char *name)
+{
+    static struct hostent ent;
+    static char sname[MAX_NAME] = "";
+    static struct SceNetInAddr saddr = { 0 };
+    static char *addrlist[2] = { (char *) &saddr, NULL };
+
+    int rid;
+    int err;
+    rid = sceNetResolverCreate("resolver", NULL, 0);
+    if(rid < 0) {
+        return NULL;
+    }
+
+    err = sceNetResolverStartNtoa(rid, name, &saddr, 0, 0, 0);
+    sceNetResolverDestroy(rid);
+    if(err < 0) {
+        return NULL;
+    }
+
+    ent.h_name = sname;
+    ent.h_aliases = 0;
+    ent.h_addrtype = SCE_NET_AF_INET;
+    ent.h_length = sizeof(struct SceNetInAddr);
+    ent.h_addr_list = addrlist;
+    ent.h_addr = addrlist[0];
+
+    return &ent;
+}
+#endif
 
 // XBOX doesn't have host lookup
 #if defined(_XBOX)
@@ -356,6 +398,45 @@ gsiSocketGethostbyname(n) SOC_GetHostByName(n)
 	#define WSAESTALE           SYS_NET_ESTALE                  
 	#define WSAEREMOTE          SYS_NET_EREMOTE
 	#define WSAEINVAL           SYS_NET_EINVAL
+#elif defined(__vita__)
+	#define WSAEWOULDBLOCK      SCE_NET_ERROR_EWOULDBLOCK             
+	#define WSAEINPROGRESS      SCE_NET_ERROR_EINPROGRESS             
+	#define WSAEALREADY         SCE_NET_ERROR_EALREADY                
+	#define WSAENOTSOCK         SCE_NET_ERROR_ENOTSOCK                
+	#define WSAEDESTADDRREQ     SCE_NET_ERROR_EDESTADDRREQ            
+	#define WSAEMSGSIZE         SCE_NET_ERROR_EMSGSIZE                
+	#define WSAEPROTOTYPE       SCE_NET_ERROR_EPROTOTYPE              
+	#define WSAENOPROTOOPT      SCE_NET_ERROR_ENOPROTOOPT             
+	#define WSAEPROTONOSUPPORT  SCE_NET_ERROR_EPROTONOSUPPORT         
+	#define WSAESOCKTNOSUPPORT  SCE_NET_ERROR_ESOCKTNOSUPPORT         
+	#define WSAEOPNOTSUPP       SCE_NET_ERROR_EOPNOTSUPP              
+	#define WSAEPFNOSUPPORT     SCE_NET_ERROR_EPFNOSUPPORT            
+	#define WSAEAFNOSUPPORT     SCE_NET_ERROR_EAFNOSUPPORT            
+	#define WSAEADDRINUSE       SCE_NET_ERROR_EADDRINUSE              
+	#define WSAEADDRNOTAVAIL    SCE_NET_ERROR_EADDRNOTAVAIL           
+	#define WSAENETDOWN         SCE_NET_ERROR_ENETDOWN                
+	#define WSAENETUNREACH      SCE_NET_ERROR_ENETUNREACH             
+	#define WSAENETRESET        SCE_NET_ERROR_ENETRESET               
+	#define WSAECONNABORTED     SCE_NET_ERROR_ECONNABORTED            
+	#define WSAECONNRESET       SCE_NET_ERROR_ECONNRESET              
+	#define WSAENOBUFS          SCE_NET_ERROR_ENOBUFS                 
+	#define WSAEISCONN          SCE_NET_ERROR_EISCONN                 
+	#define WSAENOTCONN         SCE_NET_ERROR_ENOTCONN                
+	#define WSAESHUTDOWN        SCE_NET_ERROR_ESHUTDOWN               
+	#define WSAETOOMANYREFS     SCE_NET_ERROR_ETOOMANYREFS            
+	#define WSAETIMEDOUT        SCE_NET_ERROR_ETIMEDOUT               
+	#define WSAECONNREFUSED     SCE_NET_ERROR_ECONNREFUSED            
+	#define WSAELOOP            SCE_NET_ERROR_ELOOP                   
+	#define WSAENAMETOOLONG     SCE_NET_ERROR_ENAMETOOLONG            
+	#define WSAEHOSTDOWN        SCE_NET_ERROR_EHOSTDOWN               
+	#define WSAEHOSTUNREACH     SCE_NET_ERROR_EHOSTUNREACH            
+	#define WSAENOTEMPTY        SCE_NET_ERROR_ENOTEMPTY               
+	#define WSAEPROCLIM         SCE_NET_ERROR_EPROCLIM                
+	#define WSAEUSERS           SCE_NET_ERROR_EUSERS                  
+	#define WSAEDQUOT           SCE_NET_ERROR_EDQUOT                  
+	#define WSAESTALE           SCE_NET_ERROR_ESTALE                  
+	#define WSAEREMOTE          SCE_NET_ERROR_EREMOTE
+	#define WSAEINVAL           SCE_NET_ERROR_EINVAL
 #elif !defined(_WIN32)
 	#define WSAEWOULDBLOCK      EWOULDBLOCK             
 	#define WSAEINPROGRESS      EINPROGRESS             
@@ -395,6 +476,10 @@ gsiSocketGethostbyname(n) SOC_GetHostByName(n)
 	#define WSAESTALE           ESTALE                  
 	#define WSAEREMOTE          EREMOTE
 	#define WSAEINVAL           EINVAL
+#endif
+
+#ifdef __vita__
+	#define GOAGetLastError(s) (0)
 #endif
 
 // make caps types interchangeable on all platforms

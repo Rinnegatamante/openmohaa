@@ -25,6 +25,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../gamespy/sv_gamespy.h"
 #include "../gamespy/common/gsPlatformSocket.h"
 
+#ifdef __vita__
+inline in_addr_t inet_addr( const char *cp )
+{
+	int32_t b1, b2, b3, b4;
+	int res = sscanf( cp, "%d.%d.%d.%d", &b1, &b2, &b3, &b4 );
+	if( res != 4 ) return (in_addr_t)(-1); // is actually expected behavior
+	return htonl( (b1 << 24) | (b2 << 16) | (b3 << 8) | b4 );
+}
+#endif
+
 Event EV_FAKKServerList_Connect(
     "connect",
     EV_DEFAULT,
