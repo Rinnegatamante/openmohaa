@@ -123,7 +123,7 @@ CC      = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
 CFLAGS  = $(INCLUDE) -D__FLOAT_WORD_ORDER=1 -D__GNU__ -DRELEASE -DAPP_MODULE \
         -DUSE_ICON -DARCH_STRING=\"arm\" -DBOTLIB -DUSE_CODEC_MP3 -DUSE_OPENAL \
-        -DDEFAULT_BASEDIR=\"ux0:/data/OpenMoHAA\" -DNO_MODERN_DMA=0 \
+        -DDEFAULT_BASEDIR=\"ux0:/data/OpenMoHAA\" -DNO_MODERN_DMA=0 -DNDEBUG \
         -DHAVE_VM_COMPILED=true \
         -mfpu=neon -mcpu=cortex-a9 -fsigned-char \
         -Wl,-q -O3 -g -ffast-math -fno-short-enums

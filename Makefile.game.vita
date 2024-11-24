@@ -49,7 +49,7 @@ CFLAGS  = $(INCLUDE) -D__FLOAT_WORD_ORDER=1 -D__GNU__ -DRELEASE -DWITH_SCRIPT_EN
         -DUSE_ICON -DARCH_STRING=\"arm\" -DBOTLIB -DUSE_CODEC_MP3 -DUSE_OPENAL \
         -DDEFAULT_BASEDIR=\"ux0:/data/OpenMoHAA\" -DNO_MODERN_DMA=0 -DARCHIVE_SUPPORTED \
         -DHAVE_VM_COMPILED=true -DGAME_DLL -nostartfiles -include "../vita/psp2_dll_defs.h" \
-        -mfpu=neon -mcpu=cortex-a9 -fsigned-char \
+        -mfpu=neon -mcpu=cortex-a9 -fsigned-char -DNDEBUG \
         -Wl,-q,--wrap,malloc,--wrap,calloc,--wrap,realloc,--wrap,free,--wrap,fopen,--wrap,fclose,--wrap,fseek,--wrap,ftell,--wrap,fread,--wrap,fwrite,--wrap,fprintf,--wrap,sprintf,--wrap,snprintf,--wrap,vsnprintf,--wrap,mkdir,--wrap,printf \
 		-O3 -g -ffast-math -fno-short-enums
 CXXFLAGS  = $(CFLAGS) -fexceptions -std=gnu++11
