@@ -863,7 +863,24 @@ static qboolean GLimp_StartDriverAndSetMode(int mode, qboolean fullscreen, qbool
 	static uint8_t inited = 0;
 
 	if (!inited) {
-		vglInitExtended(0, 960, 544, 0x1800000, SCE_GXM_MULTISAMPLE_4X);
+		switch (mode) {
+		case 0:
+			printf("Initing vitaGL with 480x272 resolution\n");
+			vglInitExtended(0, 480, 272, 0x1800000, SCE_GXM_MULTISAMPLE_4X);
+			break;
+		case 1:
+			printf("Initing vitaGL with 640x368 resolution\n");
+			vglInitExtended(0, 640, 368, 0x1800000, SCE_GXM_MULTISAMPLE_4X);
+			break;
+		case 2:
+			printf("Initing vitaGL with 720x408 resolution\n");
+			vglInitExtended(0, 720, 408, 0x1800000, SCE_GXM_MULTISAMPLE_4X);
+			break;
+		default:
+			printf("Initing vitaGL with 950x544 resolution\n");
+			vglInitExtended(0, 960, 544, 0x1800000, SCE_GXM_MULTISAMPLE_4X);
+			break;
+		}
 		
 		indices = (uint16_t*)malloc(sizeof(uint16_t) * 4096);
 		for (uint16_t i = 0; i < 4096; i++){
