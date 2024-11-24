@@ -58,13 +58,13 @@ QGL_3_0_PROCS;
 extern "C" {
 #endif
 
-#ifdef __vita__
-#define GL_INDEX_TYPE		GL_UNSIGNED_SHORT
-typedef uint16_t glIndex_t;
-#else
+//#ifdef __vita__
+//#define GL_INDEX_TYPE		GL_UNSIGNED_SHORT
+//typedef uint16_t glIndex_t;
+//#else
 #define GL_INDEX_TYPE		GL_UNSIGNED_INT
 typedef unsigned int glIndex_t;
-#endif
+//#endif
 
 // fast float to int conversion
 #if id386 && !( (defined __linux__ || defined __FreeBSD__ ) && (defined __i386__ ) ) // rb010123
