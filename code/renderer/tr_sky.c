@@ -386,7 +386,12 @@ static void DrawSkySide( struct image_s *image, const int mins[2], const int max
 			gTexCoordBuffer += 2;
 			numindices += 2;
 		}
-		vglVertexPointerMapped(vertices);
+#if 1
+		if (numindices > 4096 || gVertexBuffer > ((uint8_t *)gVertexBufferPtr + 0x100000)) {
+			printf("DrawSkySide: numIndices: %u, vertexBufferOffset: 0x%x\n", numindices, gVertexBuffer - gVertexBufferPtr);
+		}
+#endif
+		vglVertexPointerMapped(3, vertices);
 		vglTexCoordPointerMapped(texcoord);
 		vglDrawObjects(GL_TRIANGLE_STRIP, numindices, GL_TRUE);
 	}

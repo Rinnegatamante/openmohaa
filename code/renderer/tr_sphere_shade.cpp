@@ -627,14 +627,14 @@ static void RB_Sphere_Light_Sun()
                 qglDepthRange(0.0, 0.0);
 
                 qglDisable(GL_TEXTURE_2D);
-
+#ifndef __vita__
                 qglBegin(GL_LINES);
                 qglColor3f(0.0, 0.0, 0.0);
                 qglVertex3fv(backEnd.currentSphere->origin);
                 qglColor3f(0.5, 0.5, 0.5);
                 qglVertex3fv(transpos);
                 qglEnd();
-
+#endif
                 qglEnable(GL_TEXTURE_2D);
 
                 // Bring the depth range back
@@ -669,7 +669,7 @@ static void RB_Sphere_Light_Sun()
         qglDepthRange(0.0, 0.0);
 
         qglDisable(GL_TEXTURE_2D);
-
+#ifndef __vita__
         qglBegin(GL_LINES);
 
         if (hitSun) {
@@ -682,7 +682,7 @@ static void RB_Sphere_Light_Sun()
         qglColor3f(0.5, 0.5, 0.5);
         qglVertex3fv(transpos);
         qglEnd();
-
+#endif
         qglEnable(GL_TEXTURE_2D);
 
         // Bring the depth range back
@@ -851,7 +851,7 @@ static void RB_Sphere_DrawDebugLine(const spherel_t *thislight, float falloff, c
     }
 
     qglColor3f(newColor[0], newColor[1], newColor[2]);
-
+#ifndef __vita__
     qglBegin(GL_LINES);
     qglVertex3fv(origin);
     qglVertex3fv(backEnd.currentSphere->origin);
@@ -875,6 +875,7 @@ static void RB_Sphere_DrawDebugLine(const spherel_t *thislight, float falloff, c
     }
 
     qglEnd();
+#endif
     qglEnable(GL_TEXTURE_2D);
     // Restore depth
     qglDepthRange(0.0, 1.0);

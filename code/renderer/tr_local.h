@@ -31,6 +31,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef __vita__
 #include <vitasdk.h>
+#define HAVE_GL_HEADERS
+#include <vitaGL.h>
+extern float *gVertexBufferPtr;
 extern float *gVertexBuffer;
 extern float *gTexCoordBuffer;
 extern uint16_t *indices;

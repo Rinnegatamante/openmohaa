@@ -1056,7 +1056,27 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, int componen
 	RB_SetGL2D();
 
 	qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
+#ifdef __vita__
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
 
+	float texcoords[] = {
+		0.5f / cols,  0.5f / rows,
+		( cols - 0.5f ) / cols ,  0.5f / rows,
+		( cols - 0.5f ) / cols, ( rows - 0.5f ) / rows,
+		0.5f / cols, ( rows - 0.5f ) / rows
+	};
+	float vertices[] = {
+		x, y, 0.0f,
+		x+w, y, 0.0f,
+		x+w, y+h, 0.0f,
+		x, y+h, 0.0f
+	};
+	
+	vglVertexPointer(3, GL_FLOAT, 0, 4, vertices);
+	vglTexCoordPointer(2, GL_FLOAT, 0, 4, texcoords);
+	vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+#else
 	qglBegin (GL_QUADS);
 	qglTexCoord2f ( 0.5f / cols,  0.5f / rows );
 	qglVertex2f (x, y);
@@ -1067,6 +1087,7 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, int componen
 	qglTexCoord2f ( 0.5f / cols, ( rows - 0.5f ) / rows );
 	qglVertex2f (x, y+h);
 	qglEnd ();
+#endif
 }
 
 /*
@@ -1304,6 +1325,24 @@ void RB_ShowImages( qboolean quiet ) {
 		}
 
 		GL_Bind( image );
+#ifdef __vita__
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState(GL_COLOR_ARRAY);
+	
+		float texcoord[] = {
+			0, 0, 1, 0, 1, 1, 0, 1
+		};
+		float vertex[] = {
+			x, y, 0.0f,
+			x+w, y, 0.0f,
+			x+w, y+h, 0.0f,
+			x, y+h, 0.0f
+		};
+	
+		vglVertexPointer(3, GL_FLOAT, 0, 4, vertex);
+		vglTexCoordPointer(2, GL_FLOAT, 0, 4, texcoord);
+		vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+#else
 		qglBegin (GL_QUADS);
 		qglTexCoord2f( 0, 0 );
 		qglVertex2f( x, y );
@@ -1314,6 +1353,7 @@ void RB_ShowImages( qboolean quiet ) {
 		qglTexCoord2f( 0, 1 );
 		qglVertex2f( x, y + h );
 		qglEnd();
+#endif
 	}
 
 	qglFinish();

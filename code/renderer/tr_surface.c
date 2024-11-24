@@ -376,8 +376,13 @@ void RB_SurfaceBeam( void )
 		sceClibMemcpy(gVertexBuffer, end_points[ i % NUM_BEAM_SEGS], sizeof(vec3_t));
 		gVertexBuffer+=3;
 	}
-	vglVertexPointerMapped(pPos);
+	vglVertexPointerMapped(3, pPos);
 	vglDrawObjects(GL_TRIANGLE_STRIP, (NUM_BEAM_SEGS + 1) * 2, GL_TRUE);
+#if 1
+	if ((NUM_BEAM_SEGS + 1) * 2 > 4096 || gVertexBuffer > ((uint8_t *)gVertexBufferPtr + 0x100000)) {
+		printf("RB_SurfaceBeam: numIndices: %u, vertexBufferOffset: 0x%x\n", (NUM_BEAM_SEGS + 1) * 2, gVertexBuffer - gVertexBufferPtr);
+	}
+#endif
 #endif
 }
 

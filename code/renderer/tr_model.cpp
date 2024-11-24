@@ -605,7 +605,7 @@ void RB_DrawSkeletor(trRefEntity_t* ent) {
 
 	tiki = R_Model_GetHandle( ent->e.hModel );
 	skeletor = ( skeletor_c * )TIKI_GetSkeletor( tiki, ENTITYNUM_NONE );
-
+#ifndef __vita__
 	if( r_showSkeleton->integer == 1 ) {
 		//vec3_t vForward, vRight, vUp;
 		orientation_t ori;
@@ -703,6 +703,7 @@ void RB_DrawSkeletor(trRefEntity_t* ent) {
 		qglEnd();
 		qglLineWidth( 1 );
 	}
+#endif
 }
 
 surfaceType_t	skelSurface = SF_TIKI_SKEL;

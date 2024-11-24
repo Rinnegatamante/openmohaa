@@ -863,7 +863,7 @@ static qboolean GLimp_StartDriverAndSetMode(int mode, qboolean fullscreen, qbool
 	static uint8_t inited = 0;
 
 	if (!inited) {
-		vglInitExtended(0x100000, 960, 544, 0x1800000, SCE_GXM_MULTISAMPLE_4X);
+		vglInitExtended(0, 960, 544, 0x1800000, SCE_GXM_MULTISAMPLE_4X);
 		
 		indices = (uint16_t*)malloc(sizeof(uint16_t) * 4096);
 		for (uint16_t i = 0; i < 4096; i++){

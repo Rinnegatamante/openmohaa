@@ -1647,6 +1647,18 @@ void R_DebugPolygon( int color, int numPoints, float *points ) {
 	// draw solid shade
 
 	qglColor3f( color&1, (color>>1)&1, (color>>2)&1 );
+#ifdef __vita__
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	vglVertexPointer(3, GL_FLOAT, 0, numPoints, points);
+	vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+
+	// draw wireframe outline
+	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
+	qglDepthRange( 0, 0 );
+	qglColor3f( 1, 1, 1 );
+	vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+#else
 	qglBegin( GL_POLYGON );
 	for ( i = 0 ; i < numPoints ; i++ ) {
 		qglVertex3fv( points + i * 3 );
@@ -1662,6 +1674,7 @@ void R_DebugPolygon( int color, int numPoints, float *points ) {
 		qglVertex3fv( points + i * 3 );
 	}
 	qglEnd();
+#endif
 	qglDepthRange( 0, 1 );
 }
 
@@ -1825,7 +1838,7 @@ void R_DrawDebugLines(void) {
         qglLineStipple(4, -1);
         qglLineWidth(1.0f);
     }
-
+#ifndef __vita__
 	qglBegin(GL_LINES);
 
 	for (i = 0; i < *ri.numDebugLines; i++) {
@@ -1849,7 +1862,7 @@ void R_DrawDebugLines(void) {
 	}
 
     qglEnd();
-
+#endif
     if (r_stipplelines->integer)
     {
         qglDisable(GL_LINE_STIPPLE);

@@ -111,12 +111,33 @@ void R_RenderShadowEdges( void ) {
 			// if it doesn't share the edge with another front facing
 			// triangle, it is a sil edge
 			if ( hit[ 1 ] == 0 ) {
+#ifdef __vita__
+				glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+				glDisableClientState(GL_COLOR_ARRAY);
+				float *vertices = gVertexBuffer;
+				sceClibMemcpy(gVertexBuffer, tess.xyz[ i ], sizeof(vec3_t));
+				gVertexBuffer += 3;
+				sceClibMemcpy(gVertexBuffer, tess.xyz[ i + tess.numVertexes ], sizeof(vec3_t));
+				gVertexBuffer += 3;
+				sceClibMemcpy(gVertexBuffer, tess.xyz[ i2 ], sizeof(vec3_t));
+				gVertexBuffer += 3;
+				sceClibMemcpy(gVertexBuffer, tess.xyz[ i2 + tess.numVertexes ], sizeof(vec3_t));
+				gVertexBuffer += 3;
+#if 1
+				if (gVertexBuffer > ((uint8_t *)gVertexBufferPtr + 0x100000)) {
+					printf("R_RenderShadowEdges: vertexBufferOffset: 0x%x\n", gVertexBuffer - gVertexBufferPtr);
+				}
+#endif
+				vglVertexPointerMapped(3, vertices);
+				vglDrawObjects(GL_TRIANGLE_STRIP, 4, GL_TRUE);
+#else
 				qglBegin( GL_TRIANGLE_STRIP );
 				qglVertex3fv( tess.xyz[ i ] );
 				qglVertex3fv( tess.xyz[ i + tess.numVertexes ] );
 				qglVertex3fv( tess.xyz[ i2 ] );
 				qglVertex3fv( tess.xyz[ i2 + tess.numVertexes ] );
 				qglEnd();
+#endif
 				c_edges++;
 			} else {
 				c_rejected++;
@@ -378,14 +399,25 @@ void RB_ShadowFinish( void ) {
 
 //	qglColor3f( 1, 0, 0 );
 //	GL_State( GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO );
-
+#ifdef __vita__
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+	float vertex[] = {
+		-100, 100, -10,
+		100, 100, -10,
+		100, -100, -10,
+		-100, -100, -10
+	};
+	vglVertexPointer(3, GL_FLOAT, 0, 4, vertex);
+	vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+#else
 	qglBegin( GL_QUADS );
 	qglVertex3f( -100, 100, -10 );
 	qglVertex3f( 100, 100, -10 );
 	qglVertex3f( 100, -100, -10 );
 	qglVertex3f( -100, -100, -10 );
 	qglEnd ();
-
+#endif
 	qglColor4f(1,1,1,1);
 	qglDisable( GL_STENCIL_TEST );
 }

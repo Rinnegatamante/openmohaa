@@ -307,7 +307,24 @@ void RE_DrawBackground_TexSubImage(int cols, int rows, int bgr, byte* data) {
 	qglDisable(GL_CULL_FACE);
 	qglDisable(GL_DEPTH_TEST);
 	qglEnable(GL_TEXTURE_2D);
+#ifdef __vita__
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
 
+	float texcoord[] = {
+		0.5 / (GLfloat)cols, ((GLfloat)rows - 0.5) / rows,
+		((GLfloat)cols - 0.5) / cols, ((GLfloat)rows - 0.5) / rows,
+		((GLfloat)cols - 0.5) / cols, 0.5 / (GLfloat)rows,
+		0.5 / (GLfloat)rows, 0.5 / (GLfloat)rows
+	};
+	float vertex[] = {
+		0, 0, 0, w, 0, 0, w, h, 0, 0, h, 0
+	};
+	
+	vglVertexPointer(3, GL_FLOAT, 0, 4, vertex);
+	vglTexCoordPointer(2, GL_FLOAT, 0, 4, texcoord);
+	vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+#else
 	qglBegin(GL_QUADS);
 
 	qglTexCoord2f(0.5 / (GLfloat)cols, ((GLfloat)rows - 0.5) / rows);
@@ -323,6 +340,7 @@ void RE_DrawBackground_TexSubImage(int cols, int rows, int bgr, byte* data) {
 	qglVertex2f(0, h);
 
 	qglEnd();
+#endif
 }
 
 /*
@@ -360,7 +378,17 @@ void AddBox(float x, float y, float w, float h) {
 	qglColor4ubv(backEnd.color2D);
 	qglDisable(GL_TEXTURE_2D);
 	GL_State(GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE);
+#ifdef __vita__
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
 
+	float vertex[] = {
+		x, y, 0, x + w, y, 0, x + w, y + h, 0, x, y + h, 0
+	};
+	
+	vglVertexPointer(3, GL_FLOAT, 0, 4, vertex);
+	vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+#else
 	qglBegin(GL_QUADS);
 
 	qglVertex2f(x, y);
@@ -369,7 +397,7 @@ void AddBox(float x, float y, float w, float h) {
 	qglVertex2f(x, y + h);
 
 	qglEnd();
-
+#endif
 	qglEnable(GL_TEXTURE_2D);
 }
 
@@ -385,6 +413,17 @@ void DrawBox(float x, float y, float w, float h) {
 	qglDisable(GL_TEXTURE_2D);
 	GL_State(GLS_DEPTHTEST_DISABLE | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_SRCBLEND_SRC_ALPHA);
 
+#ifdef __vita__
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+	
+	float vertex[] = {
+		x, y, 0, x + w, y, 0, x + w, y + h, 0, x, y + h, 0
+	};
+	
+	vglVertexPointer(3, GL_FLOAT, 0, 4, vertex);
+	vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
+#else
 	qglBegin(GL_QUADS);
 
 	qglVertex2f(x, y);
@@ -393,7 +432,7 @@ void DrawBox(float x, float y, float w, float h) {
 	qglVertex2f(x, y + h);
 
 	qglEnd();
-
+#endif
 	qglEnable(GL_TEXTURE_2D);
 }
 
@@ -413,7 +452,7 @@ void DrawLineLoop(const vec2_t* points, int count, int stipple_factor, int stipp
 		qglEnable(GL_LINE_STIPPLE);
 		qglLineStipple(stipple_factor, stipple_mask);
 	}
-
+#ifndef __vita__
 	qglBegin(GL_LINE_LOOP);
 
 	for (i = 0; i < count; i++) {
@@ -421,7 +460,7 @@ void DrawLineLoop(const vec2_t* points, int count, int stipple_factor, int stipp
 	}
 
 	qglEnd();
-
+#endif
 	qglEnable(GL_TEXTURE_2D);
 
 	if (stipple_factor) {
