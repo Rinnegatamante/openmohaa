@@ -921,18 +921,19 @@ int main( int argc, char *argv[] )
 		sceKernelExitProcess(0);
 	}
 	
+	// OpenAL on Vita fails to create a context if not created from starting thread...
 	al_device = alcOpenDevice(NULL);
 	if (!al_device)
 		printf("Failed to open OpenAL device\n");
-	int         attrlist[8];
+	int attrlist[8];
 	attrlist[0] = ALC_FREQUENCY;
-    attrlist[1] = al_frequency;
-    attrlist[2] = ALC_SYNC;
-    attrlist[3] = 0;
+	attrlist[1] = al_frequency;
+	attrlist[2] = ALC_SYNC;
+	attrlist[3] = 0;
 	attrlist[4] = 0;
-    attrlist[5] = 0;
+	attrlist[5] = 0;
 	attrlist[6] = 0;
-    attrlist[7] = 0;
+	attrlist[7] = 0;
 	al_context_id = alcCreateContext(al_device, attrlist);
 	if (!al_context_id)
 		printf("Failed to create OpenAL context\n");

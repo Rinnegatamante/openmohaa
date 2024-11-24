@@ -14,6 +14,98 @@
 #include "../fgame/g_public.h"
 #endif
 
+void *__wrap_malloc(size_t size) {
+	return SYS_MALLOC(size);
+}
+
+void *__wrap_realloc(void *ptr, size_t size) {
+	return SYS_REALLOC(ptr, size);
+}
+
+void *__wrap_calloc(size_t number, size_t size) {
+	return SYS_CALLOC(number, size);
+}
+
+void __wrap_free(void *ptr) {
+	return SYS_FREE(ptr);
+}
+
+FILE *__wrap_fopen(char *fname, char *mode) {
+	return SYS_FOPEN(fname, mode);
+}
+
+int __wrap_fclose(FILE *stream) {
+	return SYS_FCLOSE(stream);
+}
+
+int __wrap_fseek(FILE *stream, long int offset, int origin) {
+	return SYS_FSEEK(stream, offset, origin);
+}
+
+long int __wrap_ftell(FILE *stream) {
+	return SYS_FTELL(stream);
+}
+
+int __wrap_fprintf(FILE *stream, const char *fmt, ...) {
+	va_list list;
+	static char string[0x8000];
+
+	va_start(list, fmt);
+	vsprintf(string, fmt, list);
+	va_end(list);
+	
+	return SYS_FPRINTF(stream, "%s", string);
+}
+
+size_t __wrap_fread(void *ptr, size_t size, size_t count, FILE *stream) {
+	return SYS_FREAD(ptr, size, count, stream);
+}
+
+size_t __wrap_fwrite(const void *ptr, size_t size, size_t count, FILE *stream) {
+	return SYS_FWRITE(ptr, size, count, stream);
+}
+
+int __wrap_sprintf(char *str, const char *fmt, ...) {
+	va_list list;
+	static char string[0x8000];
+
+	va_start(list, fmt);
+	vsprintf(string, fmt, list);
+	va_end(list);
+	
+	return SYS_SPRINTF(str, "%s", string);
+}
+
+int __wrap_snprintf(char *str, size_t n, const char *fmt, ...) {
+	va_list list;
+	static char string[0x8000];
+
+	va_start(list, fmt);
+	vsprintf(string, fmt, list);
+	va_end(list);
+	
+	return SYS_SNPRINTF(str, n, "%s", string);
+}
+
+int __wrap_vsnprintf(char *s, size_t n, const char *fmt, va_list arg) {
+	return SYS_VSNPRINTF(s, n, fmt, arg);
+}
+
+int __wrap_mkdir(const char *pathname, mode_t mode) {
+	return sceIoMkdir(pathname, mode);
+}
+
+int __wrap_printf(const char *fmt, ...) {
+	va_list list;
+	static char string[0x8000];
+
+	va_start(list, fmt);
+	vsprintf(string, fmt, list);
+	va_end(list);
+	
+	return sceClibPrintf("%s", string);
+}
+
 void* __dso_handle = (void*) &__dso_handle;
 
 extern void _init_vita_reent( void );

@@ -39,8 +39,7 @@ SHARED_CFILES += code/qcommon/q_math.c \
 CPPFILES += code/fgame/bg_misc.cpp \
 	code/fgame/bg_pmove.cpp \
 	code/fgame/bg_slidemove.cpp \
-	code/fgame/bg_voteoptions.cpp \
-	code/vita/psp_new_hacks.cpp
+	code/fgame/bg_voteoptions.cpp
 	
 CFILES += code/vita/psp2_dll_hacks.c
 
@@ -56,7 +55,8 @@ CFLAGS  = $(INCLUDE) -D__FLOAT_WORD_ORDER=1 -D__GNU__ -DRELEASE \
         -DDEFAULT_BASEDIR=\"ux0:/data/OpenMoHAA\" -DNO_MODERN_DMA=0 \
         -DHAVE_VM_COMPILED=true -DCGAME_DLL -nostartfiles -include "../vita/psp2_dll_defs.h" \
         -mfpu=neon -mcpu=cortex-a9 -fsigned-char \
-        -Wl,-q -O3 -g -ffast-math -fno-short-enums
+        -Wl,-q,--wrap,malloc,--wrap,calloc,--wrap,realloc,--wrap,free,--wrap,fopen,--wrap,fclose,--wrap,fseek,--wrap,ftell,--wrap,fread,--wrap,fwrite,--wrap,fprintf,--wrap,sprintf,--wrap,snprintf,--wrap,vsnprintf,--wrap,mkdir,--wrap,printf \
+		-O3 -g -ffast-math -fno-short-enums
 CXXFLAGS  = $(CFLAGS) -fexceptions -std=gnu++11
 ASFLAGS = $(CFLAGS)
 
