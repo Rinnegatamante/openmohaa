@@ -75,9 +75,9 @@ bool                s_bProvidersEmunerated    = false;
 static bool         al_initialized            = false;
 static bool         al_use_reverb             = false;
 static float        al_current_volume         = 0;
-static unsigned int al_frequency              = 22050;
-static ALCcontext  *al_context_id             = NULL;
-static ALCdevice   *al_device                 = NULL;
+unsigned int al_frequency              = 22050;
+ALCcontext  *al_context_id             = NULL;
+ALCdevice   *al_device                 = NULL;
 
 static ALboolean (*_alutLoadMP3_LOKI)(unsigned int buffer, const byte *data, int length);
 static void (*_alReverbScale_LOKI)();
@@ -340,7 +340,9 @@ static bool S_OPENAL_InitContext()
 
     Com_Printf("OpenAL: Opening device \"%s\"...\n", dev ? dev : "{default}");
 
-    al_device = qalcOpenDevice(dev);
+	if (!al_device)
+		al_device = qalcOpenDevice(dev);
+
     if (!al_device && dev) {
         Com_Printf("Failed to open OpenAL device '%s', trying default.\n", dev);
         al_device = qalcOpenDevice(NULL);
@@ -409,7 +411,8 @@ static bool S_OPENAL_InitContext()
     attrlist[7] = 0;
 
     Com_Printf("OpenAL: Creating AL context...\n");
-    al_context_id = qalcCreateContext(al_device, attrlist);
+	if (!al_context_id)
+		al_context_id = qalcCreateContext(al_device, attrlist);
     if (!al_context_id) {
         Com_Printf("OpenAL: Could not create context\n");
         S_OPENAL_NukeContext();

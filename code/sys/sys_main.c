@@ -760,8 +760,18 @@ void Sys_SigHandler( int signum )
 main
 =================
 */
+#ifdef __vita__
+#include <vitasdk.h>
+#include <vitaGL.h>
+int mohaa_main (unsigned int psp_argc, void* psp_argv)
+{
+	printf("[VITA] Starting main thread...\n");
+	int argc = 1;
+	char *argv[] = { "" };
+#else
 int main( int argc, char **argv )
 {
+#endif
 	int   i;
 	char  commandLine[ MAX_STRING_CHARS ] = { 0 };
 #ifdef PROTOCOL_HANDLER
@@ -878,3 +888,60 @@ int main( int argc, char **argv )
 	return 0;
 }
 
+#ifdef __vita__
+#include <AL/al.h>
+#include <AL/alc.h>
+extern ALCcontext  *al_context_id;
+extern ALCdevice   *al_device;
+extern unsigned int al_frequency;
+int main( int argc, char *argv[] )
+{
+	// Setting maximum clocks
+	scePowerSetArmClockFrequency(444);
+	scePowerSetBusClockFrequency(222);
+	scePowerSetGpuClockFrequency(222);
+	scePowerSetGpuXbarClockFrequency(166);
+	
+	// Checking for libshacccg.suprx existence
+	SceIoStat st1, st2;
+	if (!(sceIoGetstat("ur0:/data/libshacccg.suprx", &st1) >= 0 || sceIoGetstat("ur0:/data/external/libshacccg.suprx", &st2) >= 0)) {
+		vglInit(0);
+		SceMsgDialogUserMessageParam msg_param;
+		sceClibMemset(&msg_param, 0, sizeof(SceMsgDialogUserMessageParam));
+		msg_param.buttonType = SCE_MSG_DIALOG_BUTTON_TYPE_OK;
+		msg_param.msg = (const SceChar8*)"Error: Runtime shader compiler (libshacccg.suprx) is not installed.";
+		SceMsgDialogParam param;
+		sceMsgDialogParamInit(&param);
+		param.mode = SCE_MSG_DIALOG_MODE_USER_MSG;
+		param.userMsgParam = &msg_param;
+		sceMsgDialogInit(&param);
+		while (sceMsgDialogGetStatus() != SCE_COMMON_DIALOG_STATUS_FINISHED) {
+			vglSwapBuffers(GL_TRUE);
+		}
+		sceKernelExitProcess(0);
+	}
+	
+	al_device = alcOpenDevice(NULL);
+	if (!al_device)
+		printf("Failed to open OpenAL device\n");
+	int         attrlist[8];
+	attrlist[0] = ALC_FREQUENCY;
+    attrlist[1] = al_frequency;
+    attrlist[2] = ALC_SYNC;
+    attrlist[3] = 0;
+	attrlist[4] = 0;
+    attrlist[5] = 0;
+	attrlist[6] = 0;
+    attrlist[7] = 0;
+	al_context_id = alcCreateContext(al_device, attrlist);
+	if (!al_context_id)
+		printf("Failed to create OpenAL context\n");
+	
+	// We need a bigger stack to run idTech 3, so we create a new thread with a proper stack size
+	SceUID main_thread = sceKernelCreateThread("OpenMoHAA", mohaa_main, 0x40, 0x200000, 0, 0, NULL);
+	if (main_thread >= 0) {
+		sceKernelStartThread(main_thread, 0, NULL);
+	}
+	return sceKernelExitDeleteThread(0);
+}
+#endif
