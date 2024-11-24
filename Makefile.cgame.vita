@@ -39,7 +39,8 @@ SHARED_CFILES += code/qcommon/q_math.c \
 CPPFILES += code/fgame/bg_misc.cpp \
 	code/fgame/bg_pmove.cpp \
 	code/fgame/bg_slidemove.cpp \
-	code/fgame/bg_voteoptions.cpp
+	code/fgame/bg_voteoptions.cpp \
+	code/vita/psp_new_hacks.cpp
 	
 CFILES += code/vita/psp2_dll_hacks.c
 

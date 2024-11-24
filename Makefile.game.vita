@@ -34,7 +34,8 @@ SHARED_CPPFILES += code/qcommon/class.cpp \
 SHARED_CFILES += code/qcommon/q_math.c \
 	code/qcommon/q_shared.c
 
-CPPFILES += code/parser/parsetree.cpp
+CPPFILES += code/parser/parsetree.cpp \
+	code/vita/psp_new_hacks.cpp
 	
 CFILES += code/vita/psp2_dll_hacks.c
 
