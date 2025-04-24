@@ -495,7 +495,7 @@ srfGridMesh_t *R_SubdividePatchToGrid( int width, int height, float subdivide,
 		height--;
 	}
 
-#if 1
+#ifndef __vita__
 	// flip for longest tristrips as an optimization
 	// the results should be visually identical with or
 	// without this step
