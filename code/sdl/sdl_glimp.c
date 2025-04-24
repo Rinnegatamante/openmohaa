@@ -863,6 +863,8 @@ static qboolean GLimp_StartDriverAndSetMode(int mode, qboolean fullscreen, qbool
 	static uint8_t inited = 0;
 
 	if (!inited) {
+		vglUseTripleBuffering(GL_FALSE);
+		vglSetVertexPoolSize(64 * 1024 * 1024);
 		switch (mode) {
 		case 0:
 			printf("Initing vitaGL with 480x272 resolution\n");
